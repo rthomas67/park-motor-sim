@@ -4,6 +4,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
@@ -14,7 +16,9 @@ import java.awt.event.MouseListener;
 /**
  * Created by rthomas6 on 10/5/16.
  */
-public class ControlButtons extends JPanel implements ItemListener, MouseListener, MotorAnimationRecordingController {
+public class ControlButtons extends JPanel implements ItemListener, ChangeListener, MouseListener, MotorAnimationRecordingController {
+
+    private MotorController motorController;
 
     private JCheckBox parkModeEnabled;
 
@@ -37,6 +41,7 @@ public class ControlButtons extends JPanel implements ItemListener, MouseListene
     private boolean recordingActive = false;
 
     public ControlButtons(MotorController motorController) {
+        this.motorController = motorController;
         setLayout(new GridLayout(1, 3));
         parkModeEnabled = new JCheckBox("Park Enabled");
         add(parkModeEnabled);
@@ -81,6 +86,14 @@ public class ControlButtons extends JPanel implements ItemListener, MouseListene
         frame.setVisible(true);
     }
 
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        JSlider source = (JSlider)e.getSource();
+        if (!source.getValueIsAdjusting()) {
+            int speed = (int)source.getValue();
+            motorController.setSpeed(speed);
+        }
+    }
 
     @Override
     public void mouseClicked(MouseEvent e) {

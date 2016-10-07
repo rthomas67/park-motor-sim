@@ -8,6 +8,10 @@ import java.awt.BorderLayout;
  */
 public class MotorController {
 
+    public enum MotorDirection {
+        FORWARD,REVERSE
+    }
+
     public static final int SPEED_MAX = 10;
     public static final int SPEED_MIN = -10;
     public static final int SPEED_STOPPED = 0;
@@ -17,8 +21,8 @@ public class MotorController {
     private SpstSwitch commonCoilPowerSwitch = new SpstSwitch(WiredComponent.EndId.WIRE_1);
     private Wire commonCoilControllerPin = new Wire();
 
-    private SpstSwitch slowCoilPowerSwitch = new SpstSwitch(WiredComponent.EndId.WIRE_1);
-    private SpstSwitch fastCoilPowerSwitch = new SpstSwitch(WiredComponent.EndId.WIRE_1);
+    private SpstSwitchWithPwmEmulation slowCoilPowerSwitch = new SpstSwitchWithPwmEmulation(WiredComponent.EndId.WIRE_1);
+    private SpstSwitchWithPwmEmulation fastCoilPowerSwitch = new SpstSwitchWithPwmEmulation(WiredComponent.EndId.WIRE_1);
     private Wire speedCoilControllerPin = new Wire();
 
     private int speed = SPEED_STOPPED;
@@ -40,20 +44,8 @@ public class MotorController {
         fastCoilPowerSwitch.setWire1(speedCoilControllerPin);
         fastCoilPowerSwitch.setWire2(logicalMotor.getWires().get(WireId.BLUE));
         // leave this one off.
-    }
 
-    public void runProgram() {
-        while (true) {
-            try {
-                runMotorForward();
-                Thread.sleep(13000);
-                runMotorBackwards();
-                Thread.sleep(4600);
-                switchCoil();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        setSpeed(0);  // Note: This also initializes direction, which initializes coil voltages
     }
 
     /**
@@ -73,17 +65,6 @@ public class MotorController {
     }
 
     private void runMotorForward() {
-        commonCoilPowerSwitch.toggleOff();
-        commonCoilControllerPin.setVoltage(DcVoltage.POSITIVE);  // red wire
-        speedCoilControllerPin.setVoltage(DcVoltage.NEGATIVE);  // blue or green wire
-        commonCoilPowerSwitch.toggleOn();
-    }
-
-    private void runMotorBackwards() {
-        commonCoilPowerSwitch.toggleOff();
-        commonCoilControllerPin.setVoltage(DcVoltage.NEGATIVE);  // red wire
-        speedCoilControllerPin.setVoltage(DcVoltage.POSITIVE); // blue or green wire
-        commonCoilPowerSwitch.toggleOn();
     }
 
     public void setSpeed(int speed) {
@@ -92,6 +73,29 @@ public class MotorController {
                     " setting is out of range - MIN: " + SPEED_MIN + " to MAX: " + SPEED_MAX);
         }
         this.speed = speed;
+        int speedAsDutyCyclePercent = Math.abs(speed * 10);
+        slowCoilPowerSwitch.setDutyCycle(speedAsDutyCyclePercent);
+        fastCoilPowerSwitch.setDutyCycle(speedAsDutyCyclePercent);
+        setDirection((speed < 0) ? MotorDirection.FORWARD : MotorDirection.REVERSE);
+    }
+
+    private void setDirection(MotorDirection motorDirection) {
+        switch (motorDirection) {
+            case FORWARD:
+                commonCoilPowerSwitch.toggleOff();
+                commonCoilControllerPin.setVoltage(DcVoltage.POSITIVE);  // red wire
+                speedCoilControllerPin.setVoltage(DcVoltage.NEGATIVE);  // blue or green wire
+                commonCoilPowerSwitch.toggleOn();
+                break;
+            case REVERSE:
+                commonCoilPowerSwitch.toggleOff();
+                commonCoilControllerPin.setVoltage(DcVoltage.NEGATIVE);  // red wire
+                speedCoilControllerPin.setVoltage(DcVoltage.POSITIVE); // blue or green wire
+                commonCoilPowerSwitch.toggleOn();
+                break;
+            default:
+                throw new IllegalArgumentException("Did not recognize " + motorDirection + " as a valid MotorDirection.");
+        }
     }
 
     public LogicalMotor getLogicalMotor() {
@@ -118,7 +122,6 @@ public class MotorController {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        motorController.runProgram();
     }
 
 }

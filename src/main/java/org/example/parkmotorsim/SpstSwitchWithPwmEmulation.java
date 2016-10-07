@@ -28,14 +28,23 @@ public class SpstSwitchWithPwmEmulation extends SpstSwitch {
      * 25 would mean one out of every 4 cycles would report real voltage and
      * the remainder (75%) would report FLOAT (i.e. no voltage).
      */
-    private int dutyCycle = 50;
+    private int dutyCycle;
 
     private boolean invertDutyCycle = false;
 
-    private int dutyCycleDivider = 2;
+    private int dutyCycleDivider;
 
     public SpstSwitchWithPwmEmulation() {
-        // Keep default dutyCycle at 50% and dutyCycleDivider = 4
+        this(50);
+    }
+
+    public SpstSwitchWithPwmEmulation(int dutyCycle) {
+        super();
+        setDutyCycle(dutyCycle);
+    }
+
+    public SpstSwitchWithPwmEmulation(EndId master) {
+        this(master, 50);
     }
 
     /**
@@ -48,7 +57,16 @@ public class SpstSwitchWithPwmEmulation extends SpstSwitch {
      *      67 => 3 inverted (Note 66 would not work here)
      *      88 => 8 inverted (Note 87 would not work here)
      */
-    public SpstSwitchWithPwmEmulation(int dutyCycle) {
+    public SpstSwitchWithPwmEmulation(EndId master, int dutyCycle) {
+        super(master);
+        setDutyCycle(dutyCycle);
+    }
+
+    public int getDutyCycle() {
+        return dutyCycle;
+    }
+
+    public void setDutyCycle(int dutyCycle) {
         if (dutyCycle > 50) {
             this.dutyCycle = 100 - dutyCycle;
             this.invertDutyCycle = true;
@@ -56,11 +74,7 @@ public class SpstSwitchWithPwmEmulation extends SpstSwitch {
             this.dutyCycle = dutyCycle;
             this.invertDutyCycle = false;
         }
-        dutyCycleDivider = (int)(100/this.dutyCycle);
-    }
-
-    public int getDutyCycle() {
-        return dutyCycle;
+        dutyCycleDivider = (dutyCycle == 0) ? 0 : (int)(100/this.dutyCycle);
     }
 
     public int getDutyCycleDivider() {
@@ -68,6 +82,9 @@ public class SpstSwitchWithPwmEmulation extends SpstSwitch {
     }
 
     boolean duringOnCycle() {
+        if (dutyCycle == 0 || dutyCycleDivider == 0) {
+            return false;
+        }
         boolean rawResult = (((long)(System.currentTimeMillis()/CYCLE_GRANULARITY)) % dutyCycleDivider == 0);
         return (invertDutyCycle) ? !rawResult : rawResult;
     }
