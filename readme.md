@@ -1,0 +1,1 @@
+Simulator for a "prop animation" motor with two speed coils and a "park" switch.
