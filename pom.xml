@@ -9,9 +9,12 @@
 	<packaging>jar</packaging>
 	<name>ParkMotorSimulator</name>
 	<properties>
-		<slf4jVersion>1.6.1</slf4jVersion>
+		<slf4jVersion>1.7.30</slf4jVersion>
+		<log4jSlf4jImplVersion>2.13.0</log4jSlf4jImplVersion>
+		<log4jVersion>2.13.0</log4jVersion>
 		<jaxb2-basicsVersion>0.6.3</jaxb2-basicsVersion>
 		<jaxb2-annotateVersion>1.0.0</jaxb2-annotateVersion>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencyManagement>
@@ -30,14 +33,15 @@
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4jVersion}</version>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>${log4jSlf4jImplVersion}</version>
 		</dependency>
 		<dependency>
-			<groupId>log4j</groupId>
+			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
+			<version>${log4jVersion}</version>
+			<type>pom</type>
 			<scope>runtime</scope>
 		</dependency>
 
