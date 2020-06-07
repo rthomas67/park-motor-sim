@@ -11,7 +11,7 @@
 	<properties>
 		<slf4jVersion>1.7.30</slf4jVersion>
 		<log4jSlf4jImplVersion>2.13.0</log4jSlf4jImplVersion>
-		<log4jVersion>2.13.0</log4jVersion>
+		<log4jVersion>2.13.2</log4jVersion>
 		<jaxb2-basicsVersion>0.6.3</jaxb2-basicsVersion>
 		<jaxb2-annotateVersion>1.0.0</jaxb2-annotateVersion>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
